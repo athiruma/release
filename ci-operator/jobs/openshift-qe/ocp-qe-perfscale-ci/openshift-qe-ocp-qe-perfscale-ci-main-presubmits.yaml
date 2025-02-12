@@ -9428,13 +9428,14 @@ presubmits:
     branches:
     - ^main$
     - ^main-
-    cluster: build11
+    cluster: build05
     context: ci/prow/cloud-governance-ping-cloud-governance-dry-run-yes
     decorate: true
     decoration_config:
       skip_cloning: true
       timeout: 8h0m0s
     labels:
+      ci-operator.openshift.io/cluster: build05
       ci-operator.openshift.io/variant: cloud-governance-ping
       ci.openshift.io/generator: prowgen
       pj-rehearse.openshift.io/can-be-rehearsed: "true"

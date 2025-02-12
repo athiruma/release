@@ -10,6 +10,8 @@ resources:
       memory: 200Mi
 tests:
 - as: cloud-governance-dry-run-yes
+  cluster: build05
+  restrict_network_access: false
   steps:
     test:
     - ref: openshift-qe-cloud-governance-perf-dept
