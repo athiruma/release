@@ -75,11 +75,55 @@ function run_policies() {
     done
 }
 
-for dry_run in "yes" "no"; do
-    export dry_run
-    echo "Running policies on dry_run=${dry_run}"
-    var_name="${POLICIES_GROUP}-policies-dry-run-${dry_run}"
-    policies="$(cat "/secret/${var_name}")"
-    run_policies "${policies}"
+# for dry_run in "yes" "no"; do
+#     export dry_run
+#     echo "Running policies on dry_run=${dry_run}"
+#     var_name="${POLICIES_GROUP}-policies-dry-run-${dry_run}"
+#     policies="$(cat "/secret/${var_name}")"
+#     run_policies "${policies}"
 
-done
+# done
+
+# Run AWS Cost-Explorer policies
+echo
+echo
+
+es_index="${POLICIES_GROUP}-$(cat /secret/cost-es-index)"
+export es_index
+cost_explorer_tags_arr=(
+  "PurchaseType" "ChargeType" "User" "Budget" "Project" "Manager"
+  "Owner" "LaunchTime" "Email" "Environment" "User:Spot" "cluster_id"
+)
+
+cost_explorer_tags="$(printf '"%s",' "${cost_explorer_tags_arr[@]}" | sed 's/,$//')"
+cost_explorer_tags="[$cost_explorer_tags]"
+cost_metric="UnblendedCost"  # UnblendedCost/BlendedCost
+granularity="DAILY"  # DAILY/MONTHLY/HOURLY
+policy="cost_explorer"
+export policy
+export cost_metric
+export granularity
+export cost_explorer_tags
+
+
+function run_cost_policy(){
+    for account_name in ${account_group};do
+
+        # Load credentials
+        cat "/secret/${account_name}" > /tmp/creds.sh
+        chmod 600 /tmp/creds.sh
+        source /tmp/creds.sh
+
+        # Run policy function
+        echo "Running the CloudGovernance CostExplorer Policies on:- ${account_name}"
+        python3 /usr/local/cloud_governance/main.py
+        echo "exiting ${account_name}"
+        echo 
+
+    done
+}
+
+run_cost_policy
+
+echo "All policies executed successfully."
+echo
